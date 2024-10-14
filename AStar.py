@@ -10,6 +10,8 @@
 
 import math
 
+
+#calculates the angle cost given k and the initial and end states
 def calculate_angle_cost(k, initial_state, end_state):
     dx = end_state[0] - initial_state[0]
     dy = end_state[1] - initial_state[1]
@@ -19,10 +21,16 @@ def calculate_angle_cost(k, initial_state, end_state):
     return k * (angle_deg/180)
 
 
-def calculate_distance_cost(action):
-    if action in [0,2,4,6]: return 1
-    if action in [1,3,5,7]: return math.sqrt(2)
+#calculates the distance cost given the current state and the neighbor
+def calculate_distance_cost(current_state, neighbor):
+    dx = neighbor[0] - current_state[0]
+    dy = neighbor[1] - current_state[1]
+    if dx != 0 and dy != 0:  # Diagonal move
+        return math.sqrt(2)
+    else:  # Horizontal or vertical move
+        return 1
 
+#calculates the heuristic cost given the current state and the goal state
 def heuristic(current_state, goal_state):
     # Calculate the Euclidean distance between current_state and goal_state
     dx = goal_state[0] - current_state[0]
@@ -48,11 +56,13 @@ def AStar(k, start_state, goal_state, grid):
     # Initialize the cost dictionary and parent dictionary
     cost = {start_state: 0}
     parent = {start_state: None}
+    actions = {start_state: None}  # New dictionary to store actions
     
     # Initialize the priority queue and nodes expanded counter
     priority_queue = [(0, start_state)]
     nodes_expanded = 0
 
+    #while the priority queue is not empty
     while priority_queue:
         # Get the state with the lowest cost
         current_cost, current_state = min(priority_queue, key=lambda x: x[0])
@@ -61,17 +71,21 @@ def AStar(k, start_state, goal_state, grid):
 
         # Check if the current state is the goal state
         if current_state == goal_state:
-            # Reconstruct the path
+            # Reconstruct the path and actions
             path = []
+            action_sequence = []
+            #while the current state is not the start state
             while current_state:
                 path.append(current_state)
+                if actions[current_state] is not None:
+                    action_sequence.append(actions[current_state])
                 current_state = parent[current_state]
             path.reverse()
-            
+            action_sequence.reverse()
             # Calculate depth (path length - 1)
             depth = len(path) - 1
             
-            return depth, nodes_expanded, path
+            return depth, nodes_expanded, path, action_sequence
 
         # Get the neighbors of the current state
         neighbors = get_neighbors(current_state, grid)
@@ -86,13 +100,15 @@ def AStar(k, start_state, goal_state, grid):
                 priority = new_cost + heuristic(neighbor, goal_state)
                 priority_queue.append((priority, neighbor))
                 parent[neighbor] = current_state
+                actions[neighbor] = get_action(current_state, neighbor)  # Store the action
 
     # If no path is found
-    return None, nodes_expanded, None
+    return None, nodes_expanded, None, None
 
-def format_output(depth, nodes_expanded, path, start_state, goal_state, grid):
-    # Print depth and nodes expanded
+def format_output(depth, nodes_expanded, path, start_state, goal_state, grid, actions):
+    # Print depth, nodes expanded, and actions
     output = f"{depth}\n{nodes_expanded}\n"
+    output += ' '.join(map(str, actions)) + '\n'  # Add actions as the third line
 
     # Create a copy of the grid to modify
     output_grid = [row[:] for row in grid]
@@ -123,3 +139,24 @@ def format_output(depth, nodes_expanded, path, start_state, goal_state, grid):
 
     
 
+
+def get_action(current_state, next_state):
+    dx = next_state[0] - current_state[0]
+    dy = next_state[1] - current_state[1]
+    
+    if dx == 1 and dy == 0:
+        return 0  # RIGHT
+    elif dx == 1 and dy == 1:
+        return 1  # TOP-RIGHT
+    elif dx == 0 and dy == 1:
+        return 2  # UP
+    elif dx == -1 and dy == 1:
+        return 3  # TOP-LEFT
+    elif dx == -1 and dy == 0:
+        return 4  # LEFT
+    elif dx == -1 and dy == -1:
+        return 5  # BOTTOM-LEFT
+    elif dx == 0 and dy == -1:
+        return 6  # DOWN
+    elif dx == 1 and dy == -1:
+        return 7  # BOTTOM-RIGHT

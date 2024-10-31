@@ -1,3 +1,4 @@
+import math
 #0 = RIGHT
 #1 = TOP-RIGHT
 #2 = UP
@@ -7,10 +8,6 @@
 #6 = DOWN
 #7 = BOTTOM-RIGHT
 
-
-import math
-
-
 #calculates the angle cost given k and the initial and end states
 def calculate_angle_cost(k, initial_state, end_state):
     dx = end_state[0] - initial_state[0]
@@ -19,7 +16,6 @@ def calculate_angle_cost(k, initial_state, end_state):
     angle_deg = math.degrees(angle_rad)
     if angle_deg > 180: angle_deg = 360 - angle_deg
     return k * (angle_deg/180)
-
 
 #calculates the distance cost given the current state and the neighbor
 def calculate_distance_cost(current_state, neighbor):
@@ -56,7 +52,8 @@ def AStar(k, start_state, goal_state, grid):
     # Initialize the cost dictionary and parent dictionary
     cost = {start_state: 0}
     parent = {start_state: None}
-    actions = {start_state: None}  # New dictionary to store actions
+    actions = {start_state: None}
+    f_values = {start_state: 0}  # New dictionary to store f-values
     
     # Initialize the priority queue and nodes expanded counter
     priority_queue = [(0, start_state)]
@@ -74,18 +71,21 @@ def AStar(k, start_state, goal_state, grid):
             # Reconstruct the path and actions
             path = []
             action_sequence = []
+            f_value_sequence = []  # New list to store f-values
             #while the current state is not the start state
             while current_state:
                 path.append(current_state)
                 if actions[current_state] is not None:
                     action_sequence.append(actions[current_state])
+                    f_value_sequence.append(f_values[current_state])  # Store f-value
                 current_state = parent[current_state]
             path.reverse()
             action_sequence.reverse()
+            f_value_sequence.reverse()  # Reverse f-values
             # Calculate depth (path length - 1)
             depth = len(path) - 1
             
-            return depth, nodes_expanded, path, action_sequence
+            return depth, nodes_expanded, path, action_sequence, f_value_sequence
 
         # Get the neighbors of the current state
         neighbors = get_neighbors(current_state, grid)
@@ -97,18 +97,24 @@ def AStar(k, start_state, goal_state, grid):
             # If the neighbor is not in the cost dictionary or the new cost is lower
             if neighbor not in cost or new_cost < cost[neighbor]:
                 cost[neighbor] = new_cost
-                priority = new_cost + heuristic(neighbor, goal_state)
-                priority_queue.append((priority, neighbor))
+                f_value = new_cost + heuristic(neighbor, goal_state)  # Calculate f-value
+                priority_queue.append((f_value, neighbor))
                 parent[neighbor] = current_state
                 actions[neighbor] = get_action(current_state, neighbor)  # Store the action
+                f_values[neighbor] = f_value  # Store f-value
 
     # If no path is found
-    return None, nodes_expanded, None, None
+    return None, nodes_expanded, None, None, None
 
-def format_output(depth, nodes_expanded, path, start_state, goal_state, grid, actions):
+def format_output(depth, nodes_expanded, path, start_state, goal_state, grid, actions, f_values):
     # Print depth, nodes expanded, and actions
     output = f"{depth}\n{nodes_expanded}\n"
-    output += ' '.join(map(str, actions)) + '\n'  # Add actions as the third line
+
+    # Add all actions on one line
+    output += ' '.join(map(str, actions)) + '\n'
+    
+    # Add all f-values on the next line
+    output += ' '.join(f"{f_value:.1f}" for f_value in f_values) + '\n'
 
     # Create a copy of the grid to modify
     output_grid = [row[:] for row in grid]
@@ -128,16 +134,6 @@ def format_output(depth, nodes_expanded, path, start_state, goal_state, grid, ac
         output += ' '.join(map(str, row)) + '\n'
 
     return output.strip()  # Remove trailing newline
-
-
-
-
-
-
-
-            
-
-    
 
 
 def get_action(current_state, next_state):

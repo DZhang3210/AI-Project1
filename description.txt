@@ -1,0 +1,6 @@
+Upon running the program, the user will be prompted to enter the index of the input file and the k value for angle cost calculation.
+
+The program will then output the full output of the A* algorithm to output1-k.txt and the maze portion to output1-k-maze.txt.
+
+
+

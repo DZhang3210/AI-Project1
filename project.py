@@ -12,7 +12,7 @@ def main():
 
     # Parse input
     start_state, goal_state, grid = parse_input_file('inputs/input'+str(index)+'.txt')
-
+    print("start_state: ", start_state, "goal_state: ", goal_state, "grid: ", grid)
     # Run A* algorithm
     result = AStar(k, start_state, goal_state, grid)
 

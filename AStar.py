@@ -63,7 +63,9 @@ def AStar(k, start_state, goal_state, grid):
     while priority_queue:
         # Get the state with the lowest cost
         current_cost, current_state = min(priority_queue, key=lambda x: x[0])
+
         priority_queue.remove((current_cost, current_state))
+        
         nodes_expanded += 1
 
         # Check if the current state is the goal state
@@ -136,6 +138,7 @@ def format_output(depth, nodes_expanded, path, start_state, goal_state, grid, ac
     return output.strip()  # Remove trailing newline
 
 
+#returns the action given the current state and the next state
 def get_action(current_state, next_state):
     dx = next_state[0] - current_state[0]
     dy = next_state[1] - current_state[1]

@@ -1,4 +1,5 @@
 import math
+import heapq
 #0 = RIGHT
 #1 = TOP-RIGHT
 #2 = UP
@@ -49,26 +50,29 @@ def get_neighbors(current_state, grid):
     return neighbors
 
 def AStar(k, start_state, goal_state, grid):
-    # Initialize the cost dictionary and parent dictionary
+    # Initialize the dictionaries
     cost = {start_state: 0}
     parent = {start_state: None}
     actions = {start_state: None}
-    f_values = {start_state: 0}  # New dictionary to store f-values
+    f_values = {start_state: 0}
     
-    # Initialize the priority queue and nodes expanded counter
-    priority_queue = [(0, start_state)]
+    # Initialize the priority queue using heapq
+    open_list = [(0, start_state)]
+    heapq.heapify(open_list)
     nodes_expanded = 0
-
-    #while the priority queue is not empty
-    while priority_queue:
-        # Get the state with the lowest cost
-        current_cost, current_state = min(priority_queue, key=lambda x: x[0])
-
-        priority_queue.remove((current_cost, current_state))
+    closed = set()
+    
+    while open_list:
+        # Get the state with lowest f-value using heappop
+        current_cost, current_state = heapq.heappop(open_list)
         
+        # Skip if we've already processed this state
+        if current_state in closed:
+            continue
+            
+        closed.add(current_state)
         nodes_expanded += 1
 
-        # Check if the current state is the goal state
         if current_state == goal_state:
             # Reconstruct the path and actions
             path = []
@@ -89,18 +93,19 @@ def AStar(k, start_state, goal_state, grid):
             
             return depth, nodes_expanded, path, action_sequence, f_value_sequence
 
-        # Get the neighbors of the current state
         neighbors = get_neighbors(current_state, grid)
-
+        
         for neighbor in neighbors:
-            # Calculate the cost to reach the neighbor
+            if neighbor in closed:
+                continue
+                
             new_cost = cost[current_state] + calculate_distance_cost(current_state, neighbor) + calculate_angle_cost(k, current_state, neighbor)
-
-            # If the neighbor is not in the cost dictionary or the new cost is lower
+            
             if neighbor not in cost or new_cost < cost[neighbor]:
                 cost[neighbor] = new_cost
-                f_value = new_cost + heuristic(neighbor, goal_state)  # Calculate f-value
-                priority_queue.append((f_value, neighbor))
+                f_value = new_cost + heuristic(neighbor, goal_state)
+                # No need to manually remove old entries - just push the new one
+                heapq.heappush(open_list, (f_value, neighbor))
                 parent[neighbor] = current_state
                 actions[neighbor] = get_action(current_state, neighbor)  # Store the action
                 f_values[neighbor] = f_value  # Store f-value

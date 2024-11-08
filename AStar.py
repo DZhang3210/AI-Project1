@@ -10,13 +10,17 @@ import heapq
 #7 = BOTTOM-RIGHT
 
 #calculates the angle cost given k and the initial and end states
-def calculate_angle_cost(k, initial_state, end_state):
+def calculate_angle_cost(k, current_angle,  initial_state, end_state):
     dx = end_state[0] - initial_state[0]
     dy = end_state[1] - initial_state[1]
     angle_rad = math.atan2(dy, dx)
     angle_deg = math.degrees(angle_rad)
-    if angle_deg > 180: angle_deg = 360 - angle_deg
-    return k * (angle_deg/180)
+    if(current_angle is None):
+        return 0
+    current_angle_diff = abs(angle_deg - current_angle)
+    if current_angle_diff > 180:
+        current_angle_diff = 360 - current_angle_diff
+    return k * (current_angle_diff/180)
 
 #calculates the distance cost given the current state and the neighbor
 def calculate_distance_cost(current_state, neighbor):
@@ -57,14 +61,15 @@ def AStar(k, start_state, goal_state, grid):
     f_values = {start_state: 0}
     
     # Initialize the priority queue using heapq
-    open_list = [(0, start_state)]
+    open_list = [(0, None, start_state)]
+    #Cost, Angle, State
     heapq.heapify(open_list)
     nodes_expanded = 0
     closed = set()
     
     while open_list:
         # Get the state with lowest f-value using heappop
-        current_cost, current_state = heapq.heappop(open_list)
+        current_cost, current_angle, current_state = heapq.heappop(open_list)
         
         # Skip if we've already processed this state
         if current_state in closed:
@@ -98,14 +103,16 @@ def AStar(k, start_state, goal_state, grid):
         for neighbor in neighbors:
             if neighbor in closed:
                 continue
-                
-            new_cost = cost[current_state] + calculate_distance_cost(current_state, neighbor) + calculate_angle_cost(k, current_state, neighbor)
+            
+            
+            new_cost = cost[current_state] + calculate_distance_cost(current_state, neighbor) + calculate_angle_cost(k, current_angle, current_state, neighbor)
             
             if neighbor not in cost or new_cost < cost[neighbor]:
                 cost[neighbor] = new_cost
                 f_value = new_cost + heuristic(neighbor, goal_state)
                 # No need to manually remove old entries - just push the new one
-                heapq.heappush(open_list, (f_value, neighbor))
+                new_angle = math.degrees(math.atan2(neighbor[1] - current_state[1], neighbor[0] - current_state[0]))
+                heapq.heappush(open_list, (f_value, new_angle, neighbor))
                 parent[neighbor] = current_state
                 actions[neighbor] = get_action(current_state, neighbor)  # Store the action
                 f_values[neighbor] = f_value  # Store f-value

@@ -6,13 +6,12 @@ from AStar import AStar, format_output
 
 def main():
     #index of the input file
-    # index = int(input("Enter the index of the input file: "))
+    index = int(input("Enter the index of the input file: "))
     # Set the k value for angle cost calculation
     k = int(input("Enter the k value for angle cost calculation: "))
 
     # Parse input
-    # start_state, goal_state, grid = parse_input_file('inputs/input'+str(index)+'.txt')
-    start_state, goal_state, grid = parse_input_file('inputs/Sample-input.txt')
+    start_state, goal_state, grid = parse_input_file('inputs/input'+str(index)+'.txt')
     print("start_state: ", start_state, "goal_state: ", goal_state, "grid: ", grid)
     # Run A* algorithm
     result = AStar(k, start_state, goal_state, grid)
@@ -23,7 +22,7 @@ def main():
         output = format_output(depth, nodes_expanded, path, start_state, goal_state, grid, action_sequence, f_value_sequence)
         
         # Write full output to output1-k.txt
-        with open(f'outputs/output{"sample"}-{k}.txt', 'w') as file:
+        with open(f'outputs/output{index}-{k}.txt', 'w') as file:
             file.write(output)
         
         # # Extract the maze portion from output1-k.txt
